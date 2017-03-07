@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package>
+  <name>vehicle_model_pkg</name>
+  <version>0.0.0</version>
+  <description>The vehicle_model_pkg package</description>
+
+  <maintainer email="jdp0009@auburn.edu">Dan Pierce</maintainer>
+
+  <license>Auburn University GAVLAB</license>
+
+  <author email="jdp0009@auburn.edu">Dan Pierce</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>g35can</build_depend>
+  <build_depend>tf</build_depend>
+  
+  <run_depend>roscpp</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>g35can</run_depend>
+  <run_depend>tf</run_depend>
+
+  <export>
+  </export>
+</package>
