@@ -1,13 +1,60 @@
+# Note: These parameters come from the garage.m file from Jonathon Ryan
 
-
-mass: 1528.2                # Mass [kg]
-sprung_mass: 1222.6       # Sprung mass (0.8*mass, assumed by Randy) [kg]
-unsprung_mass: 305.64       # Unsprung mass (0.2*mass, assumed by Randy) [kg]
-
+mass: 1528.2# Mass [kg]
 roll_inertia: 535.0         # Roll inertia [kg*m^2]
-pitch_inertia: 2222.0         # Pitch inertia [kg*m^2]
+pitch_inertia: 2222.0       # Pitch inertia [kg*m^2]
 yaw_inertia: 2400.0         # Yaw inertia [kg*m^2]
 
 front_axle_to_cg: 1.368     # Distance from front axle to CG [m]
 rear_axle_to_cg: 1.482      # Distance from rear axle to CG [m]
+
+wheel_radius: 0.3255        # Wheel radius (from Cody thesis code) [m]
+
+drive_axle: front           # Front wheel drive
+
+# TO ADD:
+
+# parameters.h_cg_s=0.6;                  %m          Height of CG
+# parameters.h_cg_u=.3;                   %m          CG height of unsprung mass - from Randy's Blazer
+# parameters.h_rc_f=0.1;                  %m          Roll Center Height
+# parameters.h_rc_r=0.1;                  %m          Roll Center Height
+# parameters.h_pc=0.1;                                %m          Pitch Center Height
+# parameters.T_f=1.5011;                  %m          Front track of car
+# parameters.T_r=1.5062;                  %m          Front track of car
+
+# %Suspension Parameters
+# parameters.k_s_f=900*180/pi;            %Nm/rad     Front spring stiffness - I am guessing to match Will's roll
+# parameters.k_arb_f=0*180/pi;            %Nm/rad     Front sway bar stiffness
+# parameters.Sk_f=0.8*parameters.T_f;     %m          Distance beween front suspension components
+# parameters.Sb_f=0.8*parameters.T_f;     %m          Distance beween front suspension components
+# parameters.k_s_r=parameters.k_s_f;      %Nm/rad     Rear spring stiffness - I am guessing to match Will's roll
+# parameters.k_arb_r=0*180/pi;            %Nm/rad     Rear sway bar stiffness
+# parameters.Sk_r=0.8*parameters.T_r;     %m          Distance beween front suspension components
+# parameters.Sb_r=0.8*parameters.T_r;     %m          Distance beween front suspension components
+# zeta=.7;                                %-          Assumed damping coefficient
+# parameters.b_f=10000;                   %N/m/s      Front dampers - I am guessing to match Will's roll
+# parameters.b_r=parameters.b_f;          %N/m/s      Rear dampers - I am guessing to match Will's roll
+
+
+# parameters.h_cg_s=0.6;                  %m          Height of CG
+# parameters.h_cg_u=.3;                   %m          CG height of unsprung mass - from Randy's Blazer
+# parameters.h_rc_f=0.1;                  %m          Roll Center Height
+# parameters.h_rc_r=0.1;                  %m          Roll Center Height
+# parameters.h_pc=0.1;                                %m          Pitch Center Height
+# parameters.T_f=1.5011;                  %m          Front track of car
+# parameters.T_r=1.5062;                  %m          Front track of car
+
+# %Suspension Parameters
+# parameters.k_s_f=900*180/pi;            %Nm/rad     Front spring stiffness - I am guessing to match Will's roll
+# parameters.k_arb_f=0*180/pi;            %Nm/rad     Front sway bar stiffness
+# parameters.Sk_f=0.8*parameters.T_f;     %m          Distance beween front suspension components
+# parameters.Sb_f=0.8*parameters.T_f;     %m          Distance beween front suspension components
+# parameters.k_s_r=parameters.k_s_f;      %Nm/rad     Rear spring stiffness - I am guessing to match Will's roll
+# parameters.k_arb_r=0*180/pi;            %Nm/rad     Rear sway bar stiffness
+# parameters.Sk_r=0.8*parameters.T_r;     %m          Distance beween front suspension components
+# parameters.Sb_r=0.8*parameters.T_r;     %m          Distance beween front suspension components
+# zeta=.7;                                %-          Assumed damping coefficient
+# parameters.b_f=10000;                   %N/m/s      Front dampers - I am guessing to match Will's roll
+# parameters.b_r=parameters.b_f;          %N/m/s      Rear dampers - I am guessing to match Will's roll
+
 

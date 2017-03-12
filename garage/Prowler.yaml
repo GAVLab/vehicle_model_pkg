@@ -1,0 +1,54 @@
+# Note: these parameters were taken from a directory on the server under GDRS labeled prowler_matlab
+
+mass: 544.0                # Mass [kg]
+roll_inertia: 435.0         # Roll inertia (assumed) [kg*m^2]
+pitch_inertia: 1500.0         # Pitch inertia (assumed) [kg*m^2]
+yaw_inertia: 3500.0         # Yaw inertia [kg*m^2]
+
+front_axle_to_cg: 0.7239     # Distance from front axle to CG [m]
+rear_axle_to_cg: 0.7239      # Distance from rear axle to CG [m]
+
+drive_axle: rear           # Rear wheel drive (unless in 4wd)
+
+# TO ADD:
+# %Basic Geometry
+#         L=1.4478;                   %m  Wheelbase of Car
+#         a=.5*L;                     %m  Distance from front axle to CG
+#         b=L-a;                      %m  Distance from rear axle to CG
+#         h_cg=0.4;                   %m  Height of CG
+#         h_rc_f=0.17124;             %m  Roll Center Height Front
+#         h_rc_r=0.1327;              %m  Roll Center Height Rear
+#         h_rc=roll_center_height(L,a,h_rc_f,h_rc_r);
+#                                     %m  Roll Center Heigh @ CG
+#         h_pc=0.1;                   %m  Pitch Center Height
+
+#         track.f=1.143;              %m  Front track of car
+#         track.r=1.092;              %m  Rear track of car
+
+# %Suspension Parameters
+#         k_s_f=25270;                %Nm/deg  Front spring stiffness
+#         karb_f=0;                   %Nm/deg  Front spring stiffness with sway bar
+#         k_s_r=179796;               %Nm/deg  Rear spring stiffness
+#         karb_r=1199;                %Nm/deg  Rear spring stiffness with sway bar
+
+#         k_f=9950;                   %Nm/deg  Front Effective Stiffness
+#         k_r=15242;                  %Nm/deg  Rear Effective Stiffness
+
+#         s_f=.6858;                  %m Distance beween front suspension components
+#         s_r=.7366;                  %m Distance beween rear suspension components
+#         Ca_f=55000;                 %C alpha front tire (N/rad)     **assumed
+#         Ca_r=85000;                 %C alpha rear tire (N/rad)  **assumed
+
+#         zeta=.707;                  %Damping coefficient  **assumed
+
+#         muf=0.99;                    %Friction Coefficient of Rear Wheels  **assumed
+#         mur=0.99;                    %Friction Coefficient of Rear Wheels  **assumed
+
+
+#         brake_ratio=0.5;                %Braking on 2 front wheels & rear drive axle
+#         Kr=1*((k_f)*s_f^2+k_r*s_r^2)/2;
+# %         Kr=0.9*((k_f)*s_f^2+k_r*s_r^2)/2;
+#         roll_zeta=3850;
+#         Kp=1*(2*a^2*k_f+2*b^2*k_r);
+# %       Kp=0.25*(2*a^2*k_f+2*b^2*k_r);
+#         pitch_zeta=7850;
