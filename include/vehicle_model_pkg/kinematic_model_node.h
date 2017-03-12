@@ -11,7 +11,7 @@
 
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
- 
+
 #include "g35can/g35can_steer_angle.h"
           
 /*! /brief Primary class for the kinematic vehicle model class
@@ -42,6 +42,8 @@ class KinematicModelNode
     std::string base_link_frame_id;
 
     tf::TransformBroadcaster tf_broadcaster;
+
+    double mass;
 
 };
 

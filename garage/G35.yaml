@@ -1,0 +1,13 @@
+
+
+mass: 1528.2                # Mass [kg]
+sprung_mass: 1222.6       # Sprung mass (0.8*mass, assumed by Randy) [kg]
+unsprung_mass: 305.64       # Unsprung mass (0.2*mass, assumed by Randy) [kg]
+
+roll_inertia: 535.0         # Roll inertia [kg*m^2]
+pitch_inertia: 2222.0         # Pitch inertia [kg*m^2]
+yaw_inertia: 2400.0         # Yaw inertia [kg*m^2]
+
+front_axle_to_cg: 1.368     # Distance from front axle to CG [m]
+rear_axle_to_cg: 1.482      # Distance from rear axle to CG [m]
+
