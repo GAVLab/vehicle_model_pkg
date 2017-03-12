@@ -12,6 +12,8 @@ wheel_radius: 0.3255        # Wheel radius (from Cody thesis code) [m]
 
 drive_axle: front           # Front wheel drive
 
+steering_wheel_gear_ratio: 15.9 # gear ratio from steering wheel to tires []
+
 # TO ADD:
 
 # parameters.h_cg_s=0.6;                  %m          Height of CG
