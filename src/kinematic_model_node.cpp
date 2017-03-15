@@ -11,14 +11,17 @@ KinematicModelNode::KinematicModelNode()
 	ros::NodeHandle nh("~");
 
 	std::string drive_axle;
-	nh.param("sprung_mass", mass, 1528.2);
+	nh.param("mass", mass, 1528.2);
 	nh.param("wheel_radius", wheel_radius, 0.3255);
 	nh.param("drive_axle", drive_axle, std::string("front"));
 	nh.param("steering_wheel_gear_ratio", Nsw, 15.9);
 	nh.param("front_axle_to_cg", a, 1.368);
 	nh.param("rear_axle_to_cg", b, 1.482);
 
-	nh.param("time_step", dt, 0.05);
+  nh.param("odom_frame_id", odom_frame_id, std::string("odom"));
+  nh.param("base_link_frame_id", base_link_frame_id, std::string("base_link"));
+
+	nh.param("time_step", dt, 0.01);
 
 	if (~drive_axle.compare("front")){drive_type=0;}else{drive_type=1;}
 	
@@ -26,6 +29,7 @@ KinematicModelNode::KinematicModelNode()
 	ws_sub = nh.subscribe<g35can::g35can_wheel_speed>("/g35can_node/wheel_speeds", 0, &KinematicModelNode::wheelSpeedCallback, this);
 	
 	odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 10);
+
 }
 
 KinematicModelNode::~KinematicModelNode()
@@ -34,19 +38,18 @@ KinematicModelNode::~KinematicModelNode()
 }
 
 void KinematicModelNode::steerAngleCallback(const g35can::g35can_steer_angle::ConstPtr& msg){
-  ros::Time stamp_ = msg->header.stamp;
+  
+  // ROS_INFO("steerAngleCallback (seq:%d)",msg->header.seq);
 
-  double del = ( msg->steer_angle/Nsw )*M_PI/180;
-  propagate( del );
-
-  publishLatestState(stamp_);
+  del = ( msg->steer_angle/Nsw )*M_PI/180;
   
   return;
 }
 
 void KinematicModelNode::wheelSpeedCallback(const g35can::g35can_wheel_speed::ConstPtr& msg){
-	ros::Time stamp_ = msg->header.stamp;
-	
+
+  // ROS_INFO("wheelSpeedCallback (seq:%d)",msg->header.seq);
+
 	calculateVehicleSpeed(msg->wheel_speed_left_front,msg->wheel_speed_right_front,msg->wheel_speed_left_rear,msg->wheel_speed_right_rear);
 
 	return;
@@ -73,19 +76,19 @@ void KinematicModelNode::publishLatestState(ros::Time stamp_){
   odom_pub.publish(odom_msg_);
 
   // -------- ROS TF Odometry
-  geometry_msgs::TransformStamped odom_trans;
-  odom_trans.header.stamp = stamp_;
-  odom_trans.header.frame_id = odom_frame_id;
-  odom_trans.child_frame_id = base_link_frame_id;
+  // geometry_msgs::TransformStamped odom_trans;
+  // odom_trans.header.stamp = stamp_;
+  // odom_trans.header.frame_id = odom_frame_id;
+  // odom_trans.child_frame_id = base_link_frame_id;
 
-  // to 
-  odom_trans.transform.translation.x = pos[0];
-  odom_trans.transform.translation.y = pos[1];
-  odom_trans.transform.translation.z = 0.0;
+  // // to 
+  // odom_trans.transform.translation.x = pos[0];
+  // odom_trans.transform.translation.y = pos[1];
+  // odom_trans.transform.translation.z = 0.0;
 
-  odom_trans.transform.rotation = q;
+  // odom_trans.transform.rotation = q;
 
-  tf_broadcaster.sendTransform(odom_trans);
+  // tf_broadcaster.sendTransform(odom_trans);
 
   return;
 }
@@ -94,18 +97,20 @@ void KinematicModelNode::calculateVehicleSpeed(double ws_lf,double ws_rf,double 
   
   switch(drive_type){
     case 0: // front wheel drive, calculate speed with rear wheels
-      speed = (ws_lr+ws_rr)*wheel_radius/2.0;
+      speed = (ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/2.0;
     case 1: // rear wheel drive, calculate speed with front wheels
-      speed = (ws_lf+ws_rf)*wheel_radius/2.0;
+      speed = (ws_lf+ws_rf)*(2*M_PI/60)*wheel_radius/2.0;
     case 2:	// all wheel drive, calculate speed with all wheels
-      speed = (ws_lf+ws_rf+ws_lr+ws_rr)*wheel_radius/4.0;
+      speed = (ws_lf+ws_rf+ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/4.0;
   }
 
   return;
 }
 
-void KinematicModelNode::propagate(double del){
+void KinematicModelNode::propagate(){
   
+  // ROS_INFO("propagate");
+
   omega = (speed/(a+b))*tan(del);
   
   yaw += omega*dt;
@@ -113,6 +118,8 @@ void KinematicModelNode::propagate(double del){
 
   pos[0] += cos(yaw)*speed*dt;
   pos[1] += sin(yaw)*speed*dt;
+
+  publishLatestState(ros::Time::now());
 
   return;
 }
@@ -133,6 +140,16 @@ int main(int argc, char** argv)
 {
   ros::init(argc,argv,"kinematic_model_node");
   KinematicModelNode node;
+
+  ros::Rate rate_(100);
+
+  while (ros::ok())
+  {
+    node.propagate();
+    ros::spinOnce();
+    rate_.sleep();
+  }
+
   ros::spin();
   return 0;
 }
