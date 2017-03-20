@@ -22,11 +22,23 @@ catkin_package(
 ###########
 
 ## Specify additional locations of header files
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
 
 add_executable(kinematic_model_node src/kinematic_model_node.cpp include/${PROJECT_NAME}/kinematic_model_node.h)
 target_link_libraries(kinematic_model_node ${catkin_LIBRARIES})
 add_dependencies(kinematic_model_node ${catkin_EXPORTED_TARGETS})
+
+
+# Declare a cpp library
+add_library(vm_ekf
+            src/vm_ekf.cpp
+            include/${PROJECT_NAME}/vm_ekf.h)
+
+target_link_libraries(vm_ekf ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(vm_ekf_node src/vm_ekf_node.cpp include/${PROJECT_NAME}/vm_ekf_node.h)
+add_dependencies(vm_ekf_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(vm_ekf_node vm_ekf ${catkin_LIBRARIES})
 
 # # Declare a C++ library
 # add_library(kinematic_model_node
