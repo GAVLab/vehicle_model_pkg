@@ -107,11 +107,11 @@ void KinematicModelNode::calculateVehicleSpeed(double ws_lf,double ws_rf,double 
   
   switch(drive_type){
     case 0: // front wheel drive, calculate speed with rear wheels
-      speed = (ws_lr+ws_rr)*wheel_radius/2.0;
+      speed = (ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/2.0;
     case 1: // rear wheel drive, calculate speed with front wheels
-      speed = (ws_lf+ws_rf)*wheel_radius/2.0;
-    case 2:	// all wheel drive, calculate speed with all wheels
-      speed = (ws_lf+ws_rf+ws_lr+ws_rr)*wheel_radius/4.0;
+      speed = (ws_lf+ws_rf)*(2*M_PI/60)*wheel_radius/2.0;
+    case 2: // all wheel drive, calculate speed with all wheels
+      speed = (ws_lf+ws_rf+ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/4.0;
   }
 
   return;
