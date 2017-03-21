@@ -26,16 +26,16 @@ class KinematicModelNode
     KinematicModelNode();
     ~KinematicModelNode();
 
+    void propagate();
+
   private:
 
     void steerAngleCallback(const g35can::g35can_steer_angle::ConstPtr& msg);
     void wheelSpeedCallback(const g35can::g35can_wheel_speed::ConstPtr& msg);
     
-    void publishLatestState(ros::Time stamp_);
+    void publishLatestState();
 
     void calculateVehicleSpeed(double ws_lf,double ws_rf,double ws_lr,double ws_rr);
-    
-    void propagate(double del);
 
     void wrapToPi(double &ang);
 
@@ -55,6 +55,8 @@ class KinematicModelNode
 
     tf::TransformBroadcaster tf_broadcaster;
 
+    ros::Time stamp;
+
     // 
     double dt;
 
@@ -62,8 +64,9 @@ class KinematicModelNode
     double mass,wheel_radius,Nsw,a,b;
     int drive_type; // 0 for front wheel drive, 1 for rear wheel drive, 2 for all wheel drive
 
-    // States
+    // States/inputs
     double speed; // Linear speed calculated from wheel speeds
+    double del; // Linear speed calculated from wheel speeds
     double pos[2]; // 2D position
     double yaw,omega; // 
 };

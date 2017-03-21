@@ -18,7 +18,7 @@ KinematicModelNode::KinematicModelNode()
 	nh.param("front_axle_to_cg", a, 1.368);
 	nh.param("rear_axle_to_cg", b, 1.482);
 
-	nh.param("time_step", dt, 0.05);
+	nh.param("time_step", dt, 0.01);
 
 	if (~drive_axle.compare("front")){drive_type=0;}else{drive_type=1;}
 	
@@ -26,6 +26,7 @@ KinematicModelNode::KinematicModelNode()
 	ws_sub = nh.subscribe<g35can::g35can_wheel_speed>("/g35can_node/wheel_speeds", 0, &KinematicModelNode::wheelSpeedCallback, this);
 	
 	odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 10);
+
 }
 
 KinematicModelNode::~KinematicModelNode()
@@ -33,30 +34,42 @@ KinematicModelNode::~KinematicModelNode()
   std::cout << "KinematicModelNode::~KinematicModelNode" << std::endl;
 }
 
+void KinematicModelNode::propagate(){
+  
+  omega = (speed/(a+b))*tan(del);
+  
+  yaw += omega*dt;
+  wrapToPi(yaw);
+
+  pos[0] += cos(yaw)*speed*dt;
+  pos[1] += sin(yaw)*speed*dt;
+
+  publishLatestState();
+
+  return;
+}
+
 void KinematicModelNode::steerAngleCallback(const g35can::g35can_steer_angle::ConstPtr& msg){
-  ros::Time stamp_ = msg->header.stamp;
+  
+  stamp = msg->header.stamp;
 
-  double del = ( msg->steer_angle/Nsw )*M_PI/180;
-  propagate( del );
-
-  publishLatestState(stamp_);
+  del = ( msg->steer_angle/Nsw )*M_PI/180;
   
   return;
 }
 
 void KinematicModelNode::wheelSpeedCallback(const g35can::g35can_wheel_speed::ConstPtr& msg){
-	ros::Time stamp_ = msg->header.stamp;
 	
 	calculateVehicleSpeed(msg->wheel_speed_left_front,msg->wheel_speed_right_front,msg->wheel_speed_left_rear,msg->wheel_speed_right_rear);
 
 	return;
 }
 
-void KinematicModelNode::publishLatestState(ros::Time stamp_){
+void KinematicModelNode::publishLatestState(){
 
   // -------- ROS Publish Odometry
   nav_msgs::Odometry odom_msg_;
-  odom_msg_.header.stamp = stamp_;
+  odom_msg_.header.stamp = stamp;
   odom_msg_.header.frame_id = odom_frame_id;
   odom_msg_.child_frame_id = base_link_frame_id;
   
@@ -73,19 +86,19 @@ void KinematicModelNode::publishLatestState(ros::Time stamp_){
   odom_pub.publish(odom_msg_);
 
   // -------- ROS TF Odometry
-  geometry_msgs::TransformStamped odom_trans;
-  odom_trans.header.stamp = stamp_;
-  odom_trans.header.frame_id = odom_frame_id;
-  odom_trans.child_frame_id = base_link_frame_id;
+  // geometry_msgs::TransformStamped odom_trans;
+  // odom_trans.header.stamp = stamp_;
+  // odom_trans.header.frame_id = odom_frame_id;
+  // odom_trans.child_frame_id = base_link_frame_id;
 
-  // to 
-  odom_trans.transform.translation.x = pos[0];
-  odom_trans.transform.translation.y = pos[1];
-  odom_trans.transform.translation.z = 0.0;
+  // // to 
+  // odom_trans.transform.translation.x = pos[0];
+  // odom_trans.transform.translation.y = pos[1];
+  // odom_trans.transform.translation.z = 0.0;
 
-  odom_trans.transform.rotation = q;
+  // odom_trans.transform.rotation = q;
 
-  tf_broadcaster.sendTransform(odom_trans);
+  // tf_broadcaster.sendTransform(odom_trans);
 
   return;
 }
@@ -100,19 +113,6 @@ void KinematicModelNode::calculateVehicleSpeed(double ws_lf,double ws_rf,double 
     case 2:	// all wheel drive, calculate speed with all wheels
       speed = (ws_lf+ws_rf+ws_lr+ws_rr)*wheel_radius/4.0;
   }
-
-  return;
-}
-
-void KinematicModelNode::propagate(double del){
-  
-  omega = (speed/(a+b))*tan(del);
-  
-  yaw += omega*dt;
-  wrapToPi(yaw);
-
-  pos[0] += cos(yaw)*speed*dt;
-  pos[1] += sin(yaw)*speed*dt;
 
   return;
 }
@@ -133,7 +133,15 @@ int main(int argc, char** argv)
 {
   ros::init(argc,argv,"kinematic_model_node");
   KinematicModelNode node;
-  ros::spin();
+
+  ros::Rate rate_(100);
+  while (ros::ok())
+  {
+    node.propagate();
+    ros::spinOnce();
+    rate_.sleep();
+  }
+
   return 0;
 }
 
