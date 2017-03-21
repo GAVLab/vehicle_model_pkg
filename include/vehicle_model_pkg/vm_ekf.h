@@ -8,6 +8,7 @@
 #define _VEHICLE_MODEL_EKF_H_
 
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
 #include <ros/ros.h>
@@ -24,6 +25,8 @@ namespace ublas = boost::numeric::ublas;
 /* Type Definitions */
 typedef struct
 {
+    // Time Step
+    double dt;
     // Initial State
     double pos_i[2];
     double psi_i;
@@ -35,8 +38,17 @@ typedef struct
     double std_vel;
     // Measurement Uncertainty
     double std_pos;
-
 } EkfParameters;
+
+typedef struct
+{
+    // Estimated State
+    double pos[2];
+    double psi;
+    // Estimate Uncertainty
+    double std_pos[2];
+    double std_psi;
+} EkfEstimate;
 
 typedef struct
 {
@@ -54,38 +66,36 @@ class VehicleModelEkf
     VehicleModelEkf();
     ~VehicleModelEkf();
 
-    void init(EkfParameters prm);
+    void init();
 
     void timeUpdate(double del,double vel);
+
+    bool measurementUpdate(double pos[2]);
 
     void propagate(double del,double vel);
 
     EkfParameters prm;
+    EkfEstimate est;
+    VehicleParameters vehicle;
 
   private:
     
     void getStateJacobian(ublas::matrix<double> &F,double vel);
-    void getInputJacobian(ublas::matrix<double> &B,double del,double vel);
+    void getDiscreteProcessCovariance(ublas::matrix<double> &Qd,double del,double vel);
+    double wrapToPi(double ang);
 
+    bool invertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse);
+    
     //////////////
     /* EKF STUFF*/
     //////////////
-    // ----- State
-    ublas::matrix<double> x;
     // ----- Process Uncertainty
-    double std_del;
-    double std_vel;
     ublas::matrix<double> Q;
     // ----- Measurement Uncertainty
-    double std_pos;
     ublas::matrix<double> R;
     // ----- Initial Uncertainty
-    double std_pos_i;
-    double std_psi_i;
     ublas::matrix<double> P;
-    // ----- Measurement Model
-    ublas::matrix<double> H;
-
+    
 };
 
 #endif
