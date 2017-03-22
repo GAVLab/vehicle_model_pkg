@@ -1,5 +1,7 @@
 # Note: These parameters come from the garage.m file from Jonathon Ryan
 
+vehicle_name: G35               # Name of vehicle
+
 mass: 1528.2                    # Mass [kg]
 roll_inertia: 535.0             # Roll inertia [kg*m^2]
 pitch_inertia: 2222.0           # Pitch inertia [kg*m^2]
