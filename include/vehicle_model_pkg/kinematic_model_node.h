@@ -27,6 +27,8 @@ class KinematicModelNode
     ~KinematicModelNode();
 
     void propagate();
+    
+    double dt;
 
   private:
 
@@ -56,9 +58,6 @@ class KinematicModelNode
     tf::TransformBroadcaster tf_broadcaster;
 
     ros::Time stamp;
-
-    // 
-    double dt;
 
     // Parameters
     double mass,wheel_radius,Nsw,a,b;

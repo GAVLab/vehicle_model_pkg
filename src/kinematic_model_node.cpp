@@ -134,7 +134,9 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"kinematic_model_node");
   KinematicModelNode node;
 
-  ros::Rate rate_(100);
+  sleep(100); // allow node to initialize
+
+  ros::Rate rate_(1/node.dt);
   while (ros::ok())
   {
     node.propagate();
