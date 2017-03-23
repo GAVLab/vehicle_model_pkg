@@ -10,7 +10,7 @@
 #include <ros/ros.h>
 
 #include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 
 #include "g35can/g35can_steer_angle.h"
@@ -26,6 +26,8 @@ class KinematicModelNode
     KinematicModelNode();
     ~KinematicModelNode();
 
+    void propagate();
+
   private:
 
     void steerAngleCallback(const g35can::g35can_steer_angle::ConstPtr& msg);
@@ -35,8 +37,6 @@ class KinematicModelNode
 
     void calculateVehicleSpeed(double ws_lf,double ws_rf,double ws_lr,double ws_rr);
     
-    void propagate(double del);
-
     void wrapToPi(double &ang);
 
     ros::NodeHandle nh;
@@ -48,14 +48,14 @@ class KinematicModelNode
     // Publishers
     ros::Publisher odom_pub; /*!< odometry publish (with respect to inititial pose) */
     
-    tf::Transform pose; /*!< TF of odometry position */
+    // tf::Transform pose; /*!< TF of odometry position */
 
     std::string odom_frame_id;
     std::string base_link_frame_id;
 
-    tf::TransformBroadcaster tf_broadcaster;
+    // tf::TransformBroadcaster tf_broadcaster;
 
-    // 
+    // Time stuff
     double dt;
 
     // Parameters
@@ -64,6 +64,7 @@ class KinematicModelNode
 
     // States
     double speed; // Linear speed calculated from wheel speeds
+    double del;
     double pos[2]; // 2D position
     double yaw,omega; // 
 };

@@ -3,6 +3,7 @@ project(vehicle_model_pkg)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   std_msgs
   g35can
   tf
@@ -72,6 +73,16 @@ target_link_libraries(vm_ekf_node vm_ekf ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
+
+install(DIRECTORY
+  scripts
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY
+  launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html

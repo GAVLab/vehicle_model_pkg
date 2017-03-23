@@ -1,5 +1,7 @@
 # Note: these parameters were taken from a directory on the server under GDRS labeled prowler_matlab
 
+vehicle_name: Prowler               # Name of vehicle
+
 mass: 544.0                # Mass [kg]
 roll_inertia: 435.0         # Roll inertia (assumed) [kg*m^2]
 pitch_inertia: 1500.0         # Pitch inertia (assumed) [kg*m^2]
