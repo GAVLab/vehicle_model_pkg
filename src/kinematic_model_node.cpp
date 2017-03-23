@@ -18,9 +18,6 @@ KinematicModelNode::KinematicModelNode()
 	nh.param("front_axle_to_cg", a, 1.368);
 	nh.param("rear_axle_to_cg", b, 1.482);
 
-  nh.param("odom_frame_id", odom_frame_id, std::string("odom"));
-  nh.param("base_link_frame_id", base_link_frame_id, std::string("base_link"));
-
 	nh.param("time_step", dt, 0.01);
 
 	if (~drive_axle.compare("front")){drive_type=0;}else{drive_type=1;}
@@ -37,9 +34,24 @@ KinematicModelNode::~KinematicModelNode()
   std::cout << "KinematicModelNode::~KinematicModelNode" << std::endl;
 }
 
+void KinematicModelNode::propagate(){
+  
+  omega = (speed/(a+b))*tan(del);
+  
+  yaw += omega*dt;
+  wrapToPi(yaw);
+
+  pos[0] += cos(yaw)*speed*dt;
+  pos[1] += sin(yaw)*speed*dt;
+
+  publishLatestState();
+
+  return;
+}
+
 void KinematicModelNode::steerAngleCallback(const g35can::g35can_steer_angle::ConstPtr& msg){
   
-  // ROS_INFO("steerAngleCallback (seq:%d)",msg->header.seq);
+  stamp = msg->header.stamp;
 
   del = ( msg->steer_angle/Nsw )*M_PI/180;
   
@@ -47,19 +59,17 @@ void KinematicModelNode::steerAngleCallback(const g35can::g35can_steer_angle::Co
 }
 
 void KinematicModelNode::wheelSpeedCallback(const g35can::g35can_wheel_speed::ConstPtr& msg){
-
-  // ROS_INFO("wheelSpeedCallback (seq:%d)",msg->header.seq);
-
+	
 	calculateVehicleSpeed(msg->wheel_speed_left_front,msg->wheel_speed_right_front,msg->wheel_speed_left_rear,msg->wheel_speed_right_rear);
 
 	return;
 }
 
-void KinematicModelNode::publishLatestState(ros::Time stamp_){
+void KinematicModelNode::publishLatestState(){
 
   // -------- ROS Publish Odometry
   nav_msgs::Odometry odom_msg_;
-  odom_msg_.header.stamp = stamp_;
+  odom_msg_.header.stamp = stamp;
   odom_msg_.header.frame_id = odom_frame_id;
   odom_msg_.child_frame_id = base_link_frame_id;
   
@@ -100,26 +110,9 @@ void KinematicModelNode::calculateVehicleSpeed(double ws_lf,double ws_rf,double 
       speed = (ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/2.0;
     case 1: // rear wheel drive, calculate speed with front wheels
       speed = (ws_lf+ws_rf)*(2*M_PI/60)*wheel_radius/2.0;
-    case 2:	// all wheel drive, calculate speed with all wheels
+    case 2: // all wheel drive, calculate speed with all wheels
       speed = (ws_lf+ws_rf+ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/4.0;
   }
-
-  return;
-}
-
-void KinematicModelNode::propagate(){
-  
-  // ROS_INFO("propagate");
-
-  omega = (speed/(a+b))*tan(del);
-  
-  yaw += omega*dt;
-  wrapToPi(yaw);
-
-  pos[0] += cos(yaw)*speed*dt;
-  pos[1] += sin(yaw)*speed*dt;
-
-  publishLatestState(ros::Time::now());
 
   return;
 }
@@ -141,8 +134,9 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"kinematic_model_node");
   KinematicModelNode node;
 
-  ros::Rate rate_(100);
+  sleep(100); // allow node to initialize
 
+  ros::Rate rate_(1/node.dt);
   while (ros::ok())
   {
     node.propagate();
@@ -150,7 +144,6 @@ int main(int argc, char** argv)
     rate_.sleep();
   }
 
-  ros::spin();
   return 0;
 }
 
