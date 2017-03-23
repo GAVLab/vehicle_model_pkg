@@ -23,10 +23,13 @@ class G35TfBroadcaster:
     self.reference_initialized = False
     self.ref_lla = (0.,0.,0.)
 
-    self.rot_angle_fl = 0.;
-    self.rot_angle_rl = 0.;
-    self.rot_angle_fr = 0.;
-    self.rot_angle_rr = 0.;
+    self.rot_angle_fl = self.ang_vel_fl = 0.;
+    self.rot_angle_rl = self.ang_vel_rl = 0.;
+    self.rot_angle_fr = self.ang_vel_fr = 0.;
+    self.rot_angle_rr = self.ang_vel_rr = 0.;
+
+    self.sep_pos = (0.,0.,0.);
+    self.sep_quat = (0.,0.,0.,1.);
 
     # ---- ROS parameters
     self.marker_frame_id = rospy.get_param('~marker_frame_id','/base_footprint')
@@ -36,7 +39,9 @@ class G35TfBroadcaster:
     self.wr = rospy.get_param('~wheel_radius',0.)
     self.t_f = rospy.get_param('~front_track_width',0.)
     self.t_r = rospy.get_param('~rear_track_width',0.)
-    self.ws_dt = rospy.get_param('~wheel_speed_time_step',0.05)
+    self.update_rate = rospy.get_param('~update_rate',20.0)
+
+    self.dt = 1/self.update_rate
 
     # ---- ROS TF
     self.br = tf.TransformBroadcaster()
@@ -52,11 +57,9 @@ class G35TfBroadcaster:
     ws_sub = rospy.Subscriber("/g35can_node/wheel_speeds",g35can_wheel_speed,self.ws_callback,queue_size=1)
 
   def sep_callback(self,msg):
-    stamp_ = rospy.get_rostime()
-
     # ---- Orientation
-    sep_quat = (msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, 
-            msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
+    self.sep_quat = (msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, 
+                     msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
 
     # ---- Position
     xyz = (msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z)
@@ -69,32 +72,27 @@ class G35TfBroadcaster:
       return
     
     rsp = self.xyz2enu(xyz=xyz,ref_lla=self.ref_lla)
-    sep_pos = (rsp.enu[0],rsp.enu[1],rsp.enu[2])
-
-    """""""""""""""
-    "" Handle TF ""
-    """""""""""""""
-    self.br.sendTransform(sep_pos,sep_quat,stamp_,"base_footprint","ned")
+    self.sep_pos = (rsp.enu[0],rsp.enu[1],rsp.enu[2])
 
   def ws_callback(self,msg):
+    self.ang_vel_fl = msg.wheel_speed_left_front*(2*np.pi/60)*self.wr # [rad/s]
+    self.ang_vel_rl = msg.wheel_speed_left_rear*(2*np.pi/60)*self.wr # [rad/s]
+    self.ang_vel_fr = msg.wheel_speed_right_front*(2*np.pi/60)*self.wr # [rad/s]
+    self.ang_vel_rr = msg.wheel_speed_right_rear*(2*np.pi/60)*self.wr # [rad/s]
+
+  def tf_update(self):
     stamp_ = rospy.get_rostime()
 
-    ang_vel = msg.wheel_speed_left_front*(2*np.pi/60)*self.wr # [rad/s]
-    self.rot_angle_fl += ang_vel*self.ws_dt
-
-    ang_vel = msg.wheel_speed_left_rear*(2*np.pi/60)*self.wr # [rad/s]
-    self.rot_angle_rl += ang_vel*self.ws_dt
-
-    ang_vel = msg.wheel_speed_right_front*(2*np.pi/60)*self.wr # [rad/s]
-    self.rot_angle_fr += ang_vel*self.ws_dt
-
-    ang_vel = msg.wheel_speed_right_rear*(2*np.pi/60)*self.wr # [rad/s]
-    self.rot_angle_rr += ang_vel*self.ws_dt
+    self.rot_angle_fl += self.ang_vel_fl*self.dt
+    self.rot_angle_rl += self.ang_vel_rl*self.dt
+    self.rot_angle_fr += self.ang_vel_fr*self.dt
+    self.rot_angle_rr += self.ang_vel_rr*self.dt
 
     """""""""""""""
     "" Handle TF ""
     """""""""""""""
-    q_tire = (0.,0.,0.,1.)
+    self.br.sendTransform(self.sep_pos,self.sep_quat,stamp_,"base_footprint","ned")
+
     pos_z = self.wr
 
     # Front left wheel (at tire contact)
@@ -118,7 +116,7 @@ class G35TfBroadcaster:
     pos_y = self.t_r/2.
     q_tire = e2q(0., self.rot_angle_rl, 0.)
 
-    self.br.sendTransform((pos_x, pos_y, pos_z),(0.,0.,0.,1.),stamp_,
+    self.br.sendTransform((pos_x, pos_y, pos_z),q_tire,stamp_,
                           "wheel_left_rear","base_footprint")
 
     # Rear right wheel (at tire contact)
@@ -126,15 +124,17 @@ class G35TfBroadcaster:
     pos_y = -self.t_r/2.
     q_tire = e2q(0., self.rot_angle_rr, 0.)
 
-    self.br.sendTransform((pos_x, pos_y, pos_z),(0.,0.,0.,1.),stamp_,
+    self.br.sendTransform((pos_x, pos_y, pos_z),q_tire,stamp_,
                           "wheel_right_rear","base_footprint")
-
+    
 def main(args):
   rospy.init_node('g35_tf_broadcaster')
   node = G35TfBroadcaster()
 
+  r = rospy.Rate(node.update_rate)
   while not rospy.is_shutdown():
-    rospy.spin()
+    node.tf_update()
+    r.sleep()
 
 if __name__ == '__main__':
     main(sys.argv)
