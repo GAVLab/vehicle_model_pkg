@@ -10,7 +10,7 @@ VehicleModelEkf::VehicleModelEkf()
 {
   P.resize(3,3);
   Q.resize(2,2);
-  R.resize(2,2);
+  init = false;
 
   std::cout << "VehicleModelEkf::VehicleModelEkf" << std::endl;
 }
@@ -20,7 +20,7 @@ VehicleModelEkf::~VehicleModelEkf()
   std::cout << "VehicleModelEkf::~VehicleModelEkf" << std::endl;
 }
 
-void VehicleModelEkf::init()
+void VehicleModelEkf::initialize()
 {
 
   // ----- Initialize State
@@ -39,11 +39,9 @@ void VehicleModelEkf::init()
   Q.clear();
   Q(0,0) = pow(prm.std_del,2);
   Q(1,1) = pow(prm.std_vel,2);
-  // ----- Measurement Uncertainty
-  R.clear();
-  R(0,0) = pow(prm.std_pos,2);
-  R(1,1) = pow(prm.std_pos,2);
   
+  init=true;
+
   // Should make this message a debug callback instead
   std::cout << "Vehicle Model EKF Initialized" << std::endl;
 
@@ -83,8 +81,15 @@ void VehicleModelEkf::timeUpdate(double del,double vel){
 
 }
 
-bool VehicleModelEkf::measurementUpdate(double pos[2]){
+bool VehicleModelEkf::measurementUpdate(double pos[2], double cov[2][2]){
   
+  // ----- Measurement Uncertainty
+  ublas::matrix<double> R (2,2);
+
+  for(int i=0;i<2;i++)
+      for(int j=0;j<2;j++)
+        R(i,j)=cov[i][j];
+
   // Populate measurement vector
   ublas::matrix<double> y(2,1);
   y(0,0) = pos[0]; y(1,0) = pos[1];

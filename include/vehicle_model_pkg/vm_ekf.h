@@ -66,14 +66,16 @@ class VehicleModelEkf
     VehicleModelEkf();
     ~VehicleModelEkf();
 
-    void init();
+    void initialize();
 
     void timeUpdate(double del,double vel);
 
-    bool measurementUpdate(double pos[2]);
+    bool measurementUpdate(double pos[2],double cov[2][2]);
 
     void propagate(double del,double vel);
 
+
+    bool init;
     EkfParameters prm;
     EkfEstimate est;
     VehicleParameters vehicle;
@@ -91,8 +93,6 @@ class VehicleModelEkf
     //////////////
     // ----- Process Uncertainty
     ublas::matrix<double> Q;
-    // ----- Measurement Uncertainty
-    ublas::matrix<double> R;
     // ----- Initial Uncertainty
     ublas::matrix<double> P;
     
