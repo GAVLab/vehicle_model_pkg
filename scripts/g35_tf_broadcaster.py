@@ -28,10 +28,12 @@ class G35TfBroadcaster:
     self.rot_angle_fr = self.ang_vel_fr = 0.;
     self.rot_angle_rr = self.ang_vel_rr = 0.;
 
-    self.sep_pos = (0.,0.,0.);
-    self.sep_quat = (0.,0.,0.,1.);
+    self.pos = (0.,0.,0.);
+    self.quat = (0.,0.,0.,1.);
 
     # ---- ROS parameters
+    odom_topic = rospy.get_param('~odom_topic','/vm_ekf_node/odom')
+
     self.marker_frame_id = rospy.get_param('~marker_frame_id','/base_footprint')
     self.a = rospy.get_param('~front_axle_to_cg',0.)
     self.b = rospy.get_param('~rear_axle_to_cg',0.)
@@ -53,26 +55,29 @@ class G35TfBroadcaster:
     self.xyz2enu = rospy.ServiceProxy('xyz2enu', WgsConversion)
 
     # ---- ROS subscribers
-    sep_sub = rospy.Subscriber("/septentrio/odom",Odometry,self.sep_callback,queue_size=1)
+    pose_sub = rospy.Subscriber(odom_topic,Odometry,self.pose_callback,queue_size=1)
     ws_sub = rospy.Subscriber("/g35can_node/wheel_speeds",g35can_wheel_speed,self.ws_callback,queue_size=1)
 
-  def sep_callback(self,msg):
+  def pose_callback(self,msg):
     # ---- Orientation
-    self.sep_quat = (msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, 
+    self.quat = (msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, 
                      msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
 
-    # ---- Position
-    xyz = (msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z)
+    if msg.header.frame_id == 'ENU':
+        self.pos = (msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z)
+        return
+    else:
+        xyz = (msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z)
 
-    if not self.reference_initialized:
-      rsp = self.xyz2lla(xyz=xyz)
-      self.ref_lla = rsp.lla
-      self.reference_initialized = True
-      self.sep_pos = (0.,0.,0.)
-      return
-    
-    rsp = self.xyz2enu(xyz=xyz,ref_lla=self.ref_lla)
-    self.sep_pos = (rsp.enu[0],rsp.enu[1],rsp.enu[2])
+        if not self.reference_initialized:
+          rsp = self.xyz2lla(xyz=xyz)
+          self.ref_lla = rsp.lla
+          self.reference_initialized = True
+          self.pos = (0.,0.,0.)
+          return
+        
+        rsp = self.xyz2enu(xyz=xyz,ref_lla=self.ref_lla)
+        self.pos = (rsp.enu[0],rsp.enu[1],rsp.enu[2])
 
   def ws_callback(self,msg):
     self.ang_vel_fl = msg.wheel_speed_left_front*(2*np.pi/60)*self.wr # [rad/s]
@@ -91,7 +96,7 @@ class G35TfBroadcaster:
     """""""""""""""
     "" Handle TF ""
     """""""""""""""
-    self.br.sendTransform(self.sep_pos,self.sep_quat,stamp_,"base_footprint","ned")
+    self.br.sendTransform(self.pos,self.quat,stamp_,"base_footprint","ENU")
 
     pos_z = self.wr
 

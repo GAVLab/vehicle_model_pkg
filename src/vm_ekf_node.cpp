@@ -199,7 +199,7 @@ void VehicleModelEkfNode::publishLatestState(){
   // -------- ROS Publish Odometry
   nav_msgs::Odometry odom_msg_;
   odom_msg_.header.stamp = stamp;
-  // odom_msg_.header.frame_id = odom_frame_id;
+  odom_msg_.header.frame_id = "ENU";
   // odom_msg_.child_frame_id = base_link_frame_id;
   
   odom_msg_.pose.pose.position.x = ekf.est.pos[0];
