@@ -30,15 +30,17 @@ class VehicleModelEkfNode
     VehicleModelEkfNode();
     ~VehicleModelEkfNode();
 
+    void propagate();
+
+    double dt;
+
   private:
 
     void steerAngleCallback(const g35can::g35can_steer_angle::ConstPtr& msg);
     void wheelSpeedCallback(const g35can::g35can_wheel_speed::ConstPtr& msg);
     void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
     
-    void publishLatestState(ros::Time stamp_);
-
-    void calculateVehicleSpeed(double ws_lf,double ws_rf,double ws_lr,double ws_rr);
+    void publishLatestState();
 
     // Publishers
     ros::Publisher odom_pub; /*!< odometry publish (with respect to inititial pose) */
@@ -47,15 +49,17 @@ class VehicleModelEkfNode
     ros::Subscriber gps_sub;
 
     // ROS Service Client for WGS Conversion
-    ros::ServiceClient lla_client,enu_client;
+    ros::ServiceClient lla_client,enu_client,cov_client,vel_client;
 
     // tf::Transform pose; /*!< TF of odometry position */
     // std::string odom_frame_id;
     // std::string base_link_frame_id;
     // tf::TransformBroadcaster tf_broadcaster;
+    
+    ros::Time stamp;
 
     // Parameters
-    double wheel_radius,Nsw;
+    double wheel_radius,Nsw,del;
     int drive_type; // 0 for front wheel drive, 1 for rear wheel drive, 2 for all wheel drive
 
     double speed;
