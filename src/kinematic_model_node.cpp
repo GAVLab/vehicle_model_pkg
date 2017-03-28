@@ -53,14 +53,26 @@ void KinematicModelNode::steerAngleCallback(const g35can::g35can_steer_angle::Co
   
   stamp = msg->header.stamp;
 
-  del = ( msg->steer_angle/Nsw )*M_PI/180;
+  del = - ( msg->steer_angle/Nsw )*M_PI/180;
   
   return;
 }
 
 void KinematicModelNode::wheelSpeedCallback(const g35can::g35can_wheel_speed::ConstPtr& msg){
 	
-	calculateVehicleSpeed(msg->wheel_speed_left_front,msg->wheel_speed_right_front,msg->wheel_speed_left_rear,msg->wheel_speed_right_rear);
+  double ws_lf = msg->wheel_speed_left_front;
+  double ws_rf = msg->wheel_speed_right_front;
+  double ws_lr = msg->wheel_speed_left_rear;
+  double ws_rr = msg->wheel_speed_right_rear;
+
+  switch(drive_type){
+    case 0: // front wheel drive, calculate speed with rear wheels
+      speed = (ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/2.0;
+    case 1: // rear wheel drive, calculate speed with front wheels
+      speed = (ws_lf+ws_rf)*(2*M_PI/60)*wheel_radius/2.0;
+    case 2: // all wheel drive, calculate speed with all wheels
+      speed = (ws_lf+ws_rf+ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/4.0;
+  }
 
 	return;
 }
@@ -70,8 +82,6 @@ void KinematicModelNode::publishLatestState(){
   // -------- ROS Publish Odometry
   nav_msgs::Odometry odom_msg_;
   odom_msg_.header.stamp = stamp;
-  odom_msg_.header.frame_id = odom_frame_id;
-  odom_msg_.child_frame_id = base_link_frame_id;
   
   odom_msg_.pose.pose.position.x = pos[0];
   odom_msg_.pose.pose.position.y = pos[1];
@@ -84,35 +94,6 @@ void KinematicModelNode::publishLatestState(){
   odom_msg_.twist.twist.angular.z = omega;
 
   odom_pub.publish(odom_msg_);
-
-  // -------- ROS TF Odometry
-  // geometry_msgs::TransformStamped odom_trans;
-  // odom_trans.header.stamp = stamp_;
-  // odom_trans.header.frame_id = odom_frame_id;
-  // odom_trans.child_frame_id = base_link_frame_id;
-
-  // // to 
-  // odom_trans.transform.translation.x = pos[0];
-  // odom_trans.transform.translation.y = pos[1];
-  // odom_trans.transform.translation.z = 0.0;
-
-  // odom_trans.transform.rotation = q;
-
-  // tf_broadcaster.sendTransform(odom_trans);
-
-  return;
-}
-
-void KinematicModelNode::calculateVehicleSpeed(double ws_lf,double ws_rf,double ws_lr,double ws_rr){
-  
-  switch(drive_type){
-    case 0: // front wheel drive, calculate speed with rear wheels
-      speed = (ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/2.0;
-    case 1: // rear wheel drive, calculate speed with front wheels
-      speed = (ws_lf+ws_rf)*(2*M_PI/60)*wheel_radius/2.0;
-    case 2: // all wheel drive, calculate speed with all wheels
-      speed = (ws_lf+ws_rf+ws_lr+ws_rr)*(2*M_PI/60)*wheel_radius/4.0;
-  }
 
   return;
 }
