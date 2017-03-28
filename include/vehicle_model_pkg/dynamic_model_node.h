@@ -36,7 +36,7 @@ class DynamicModelNode
     
     void publishLatestState();
 
-    void calculateVehicleSpeed(double ws_lf,double ws_rf,double ws_lr,double ws_rr);
+    void calculateTireForce(double &Fyf,double &Fyr);
 
     void wrapToPi(double &ang);
 
@@ -51,11 +51,13 @@ class DynamicModelNode
     ros::Time stamp;
 
     // Parameters
-    double mass,wheel_radius,Nsw,a,b;
+    double m,wr,Nsw,a,b,Izz,CaF,CaR,tr,tf;
     int drive_type; // 0 for front wheel drive, 1 for rear wheel drive, 2 for all wheel drive
 
     // States/inputs
-    double speed; // Linear speed calculated from wheel speeds
+    double vx; // x component of vehicle velocity
+    double vy; // y component of vehicle velocity
+    
     double del; // Linear speed calculated from wheel speeds
     double pos[2]; // 2D position
     double yaw,omega; // 

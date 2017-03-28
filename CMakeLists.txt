@@ -29,6 +29,10 @@ add_executable(kinematic_model_node src/kinematic_model_node.cpp include/${PROJE
 target_link_libraries(kinematic_model_node ${catkin_LIBRARIES})
 add_dependencies(kinematic_model_node ${catkin_EXPORTED_TARGETS})
 
+add_executable(dynamic_model_node src/dynamic_model_node.cpp include/${PROJECT_NAME}/dynamic_model_node.h)
+target_link_libraries(dynamic_model_node ${catkin_LIBRARIES})
+add_dependencies(dynamic_model_node ${catkin_EXPORTED_TARGETS})
+
 
 # Declare a cpp library
 add_library(vm_ekf
