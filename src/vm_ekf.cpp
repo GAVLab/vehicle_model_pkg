@@ -99,8 +99,13 @@ bool VehicleModelEkf::measurementUpdate(double pos[2], double cov[2][2]){
   x(0,0) = est.pos[0]; x(1,0) = est.pos[1]; x(2,0) = est.psi;
 
   // Measurement matrix
-  ublas::matrix<double> H = ublas::zero_matrix<double> (2,3);
-  H(0,0) = 1.0; H(1,1) = 1.0;
+  ublas::matrix<double> H (2,3);
+  getMeasurementJacobian(H);
+
+  // Measurement equation
+  ublas::matrix<double> yhat (2,1);
+  yhat(0,0) = est.pos[0] + vehicle.ox*cos(est.psi) - vehicle.oy*sin(est.psi);
+  yhat(1,0) = est.pos[1] + vehicle.ox*sin(est.psi) + vehicle.oy*cos(est.psi);
 
   // Calculate Kalman gain
   ublas::matrix<double> PHt = prod(P,trans(H)); // P*H'
@@ -116,7 +121,7 @@ bool VehicleModelEkf::measurementUpdate(double pos[2], double cov[2][2]){
   K = prod(PHt,Sinv); // K = P*H'/(H*P*H' + R);
 
   // Update state estimate
-  x += prod(K,y-prod(H,x)); // x = x + K*(y-H*x)
+  x += prod(K,y-yhat); // x = x + K*(y-H*x)
 
   // Update state estimate covariance matrix
   ublas::identity_matrix<double> I(3);
@@ -153,6 +158,15 @@ void VehicleModelEkf::propagate(double del,double vel){
 
 }
 
+void VehicleModelEkf::getMeasurementJacobian(ublas::matrix<double> &H){
+
+  H = ublas::zero_matrix<double> (2,3);
+
+  H(0,0) = H(1,1) = 1.0;
+  H(0,2) = - vehicle.oy*cos(est.psi) - vehicle.ox*sin(est.psi);
+  H(1,2) = vehicle.ox*cos(est.psi) - vehicle.oy*sin(est.psi);
+
+}
 
 void VehicleModelEkf::getStateJacobian(ublas::matrix<double> &F,double vel){
   ublas::identity_matrix<double> I (3);

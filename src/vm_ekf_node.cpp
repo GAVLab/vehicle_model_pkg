@@ -15,12 +15,15 @@ VehicleModelEkfNode::VehicleModelEkfNode()
   /* Vehicle Parameters */
   ////////////////////////
 	std::string drive_axle;
-  double a,b;
+  double a,b,ox,oy;
 	nh.param("wheel_radius", wheel_radius, 0.3255);
 	nh.param("drive_axle", drive_axle, std::string("front"));
 	nh.param("steering_wheel_gear_ratio", Nsw, 15.9);
 	nh.param("front_axle_to_cg", a, 1.368);
 	nh.param("rear_axle_to_cg", b, 1.482);
+
+  nh.param("antenna_offset_x", ox, 0.0);
+  nh.param("antenna_offset_y", oy, 0.0);
   
   if (~drive_axle.compare("front")){drive_type=0;}else{drive_type=1;}
   
@@ -28,6 +31,7 @@ VehicleModelEkfNode::VehicleModelEkfNode()
   /* EKF Parameters */
   ////////////////////
   ekf.vehicle.a = a; ekf.vehicle.b = b;
+  ekf.vehicle.ox = ox; ekf.vehicle.oy = oy;
   
   // ----- Time Step
   nh.param("time_step", dt, 0.01);

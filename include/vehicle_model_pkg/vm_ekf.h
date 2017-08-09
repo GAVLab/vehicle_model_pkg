@@ -11,15 +11,6 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include <ros/ros.h>
-
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
-#include <nav_msgs/Odometry.h>
-
-#include "g35can/g35can_steer_angle.h"
-#include "g35can/g35can_wheel_speed.h"
-
 namespace ublas = boost::numeric::ublas;
 
 /* Type Definitions */
@@ -54,6 +45,8 @@ typedef struct
 {
     double a;
     double b;
+    double ox;
+    double oy;   
 } VehicleParameters;
 
 /*! /brief Primary class for the kinematic vehicle model class
@@ -83,6 +76,7 @@ class VehicleModelEkf
   private:
     
     void getStateJacobian(ublas::matrix<double> &F,double vel);
+    void getMeasurementJacobian(ublas::matrix<double> &H);
     void getDiscreteProcessCovariance(ublas::matrix<double> &Qd,double del,double vel);
     double wrapToPi(double ang);
 
