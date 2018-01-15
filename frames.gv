@@ -1,0 +1,3 @@
+digraph G {
+"ned" -> "follower_base"[label="Broadcaster: /nav_to_tf\nAverage rate: 100.213 Hz\nMost recent transform: 1509465764.241 \nBuffer length: 4.959 sec\n"];
+}
