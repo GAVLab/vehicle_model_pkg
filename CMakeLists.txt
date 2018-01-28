@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vehicle_model_pkg)
+project(vehicle_model)
+
+find_package(catkin REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
   INCLUDE_DIRS include
+  LIBRARIES vehicle_model
+  CATKIN_DEPENDS ${catkin_components}
 )
 
 ###########

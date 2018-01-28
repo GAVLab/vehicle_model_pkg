@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>vehicle_model_pkg</name>
+  <name>vehicle_model</name>
   <version>0.0.0</version>
-  <description>The vehicle_model_pkg package</description>
+  <description>The vehicle_model package</description>
 
   <maintainer email="jdp0009@auburn.edu">Dan Pierce</maintainer>
 

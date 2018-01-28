@@ -4,7 +4,7 @@
  * Dan Pierce
  * 2017-03-15
  */
-#include "vehicle_model_pkg/vehicle_model.h"
+#include "vehicle_model/vehicle_model.h"
 
 VehicleModel::VehicleModel()
 {
@@ -14,7 +14,7 @@ VehicleModel::VehicleModel()
   state_.lateralVelocity = 0.0;
   state_.sideslipAngle = 0.0;
 
-  dynamicModelMinSpeed_ = 5.0;
+  dynamicModelMinSpeed_ = 4.5;
 
   std::cout << "VehicleModel::VehicleModel" << std::endl;
 }
@@ -36,10 +36,12 @@ void VehicleModel::update(double steerAngle, double vehicleSpeed, double timeSte
 
 }
 
-void VehicleModel::kinematicModelUpdate(double del, double speed) {
+void VehicleModel::kinematicModelUpdate(double steerAngle, double speed) {
 
   // beta = atan2(b*tan(del),a+b);
   // omega = (vel/(a+b))*cos(beta)*tan(del);
+  
+  double del = steerAngle/prm_.steeringWheelGearRatio;
 
   double L = prm_.frontAxleToCg + prm_.rearAxleToCg;
   state_.yawRate = ( speed / L ) * tan(del);
@@ -53,8 +55,10 @@ void VehicleModel::kinematicModelUpdate(double del, double speed) {
 
 }
 
-void VehicleModel::dynamicModelUpdate(double del, double speed, double timeStep) {
+void VehicleModel::dynamicModelUpdate(double steerAngle, double speed, double timeStep) {
     
+    double del = steerAngle/prm_.steeringWheelGearRatio;
+
     /* Unpack states */
     double vy = state_.lateralVelocity;
     double r = state_.yawRate;

@@ -22,6 +22,7 @@ typedef struct
     double rearTrackWidth; 
     double frontLateralTireStiffness;
     double rearLateralTireStiffness;
+    double steeringWheelGearRatio;
 } VehicleModelParameters;
 
 typedef struct
